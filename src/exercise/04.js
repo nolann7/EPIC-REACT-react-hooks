@@ -1,16 +1,10 @@
-import {useEffect} from 'react';
-import {useState} from 'react';
+import { useLocalStorageState } from '../utils';
 
 function Board() {
-  let localSquares = localStorage.getItem('squares');
 
-  const [squares, setSquares] = useState(() => {
-    return localSquares ? JSON.parse(localSquares) : Array(9).fill(null);
-  });
+  const [squares, setSquares] = useLocalStorageState('squares', Array(9).fill(null))
 
-  useEffect(() => {
-    localStorage.setItem('squares', JSON.stringify(squares));
-  }, [squares]);
+
 
   let nextValue = calculateNextValue(squares);
   let winner = calculateWinner(squares);
