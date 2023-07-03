@@ -1,15 +1,37 @@
 // useEffect: persistent state
 // http://localhost:3000/isolated/exercise/02.js
 
-import {useEffect, useState} from 'react'
+import {useRef, useEffect, useState} from 'react'
 
-function Greeting({initialName = ''}) {
-  initialName = window.localStorage.getItem('name') ?? initialName
-  const [name, setName] = useState(initialName)
+function useLocalStorageState(key, defaultValue = '') {
+  const [state, setState] = useState(() => {
+    const valueInLocalStorage = window.localStorage.getItem(key)
+    if (valueInLocalStorage) {
+      try {
+        return JSON.parse(valueInLocalStorage)
+      } catch (error) {
+        localStorage.removeItem(key)
+      }
+    }
+    return typeof defaultValue === 'function' ? defaultValue() : defaultValue
+  })
+
+  let prevKeyRef = useRef(key)
 
   useEffect(() => {
-    window.localStorage.setItem('name', name)
-  }, [name])
+    let prevKey = prevKeyRef.current
+    if (prevKey !== key) {
+      localStorage.removeItem(prevKey)
+    }
+    prevKeyRef.current = key
+    localStorage.setItem(key, JSON.stringify(state))
+  }, [key, state])
+
+  return [state, setState]
+}
+
+function Greeting({initialName = ''}) {
+  const [name, setName] = useLocalStorageState('name', initialName)
 
   function handleChange(event) {
     setName(event.target.value)
