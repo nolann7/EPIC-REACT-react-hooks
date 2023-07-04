@@ -10,21 +10,30 @@ import {
 } from '../pokemon';
 
 function PokemonInfo({pokemonName}) {
-  const [pokemon, setPokemon] = useState(null);
-  const [error, setError] = useState(null);
-  const [status, setStatus] = useState('idle'); // 'idle' | 'pending' | 'resolved' | 'rejected'
+  // const [pokemon, setPokemon] = useState(null);
+  // const [error, setError] = useState(null);
+  // const [status, setStatus] = useState('idle'); // 'idle' | 'pending' | 'resolved' | 'rejected'
+  const [state, setState] = useState({
+    pokemon: null,
+    error: null,
+    status: 'idle',
+  });
+  const {status, pokemon, error} = state;
+
   // 🐨 use React.useEffect where the callback should be called whenever the pokemon name changes.
   useEffect(() => {
     if (!pokemonName) return;
-    setStatus('pending');
+    setState(prevState => ({...prevState, status: 'pending'}));
     fetchPokemon(pokemonName)
       .then(pokemonData => {
-        setPokemon(pokemonData);
-        setStatus('resolved');
+        setState(prevState => ({
+          ...prevState,
+          pokemon: pokemonData,
+          status: 'resolved',
+        }));
       })
       .catch(error => {
-        setError(error);
-        setStatus('rejected');
+        setState(prevState => ({...prevState, error, status: 'rejected'}));
       });
   }, [pokemonName]);
   let output = <></>;
