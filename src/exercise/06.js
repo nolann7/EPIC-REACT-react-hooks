@@ -12,20 +12,33 @@ import {
 function PokemonInfo({pokemonName}) {
   const [pokemon, setPokemon] = useState(null);
   const [error, setError] = useState(null);
+  const [status, setStatus] = useState('idle'); // 'idle' | 'pending' | 'resolved' | 'rejected'
   // 🐨 use React.useEffect where the callback should be called whenever the pokemon name changes.
   useEffect(() => {
     if (!pokemonName) return;
-    setPokemon(null);
-    setError(null)
+    setStatus('pending');
     fetchPokemon(pokemonName)
       .then(pokemonData => {
         setPokemon(pokemonData);
+        setStatus('resolved');
       })
-      .catch(error => setError(error));
+      .catch(error => {
+        setError(error);
+        setStatus('rejected');
+      });
   }, [pokemonName]);
   let output = <></>;
-  // 0. error handling
-  if (error) {
+
+  //   1. no pokemonName: 'Submit a pokemon'
+  if (status === 'idle') {
+    output = <div>Submit a pokemon</div>;
+  }
+  //   2. pokemonName but no pokemon: <PokemonInfoFallback name={pokemonName} />
+  else if (status === 'pending') {
+    output = <PokemonInfoFallback name={pokemonName} />;
+  }
+  // 3. error handling
+  else if (status === 'rejected') {
     output = (
       <div role="alert">
         There was an error:{' '}
@@ -33,17 +46,11 @@ function PokemonInfo({pokemonName}) {
       </div>
     );
   }
-  //   1. no pokemonName: 'Submit a pokemon'
-  else if (!pokemonName) {
-    output = <div>Submit a pokemon</div>;
-  }
-  //   2. pokemonName but no pokemon: <PokemonInfoFallback name={pokemonName} />
-  else if (pokemonName && !pokemon) {
-    output = <PokemonInfoFallback name={pokemonName} />;
-  }
-  //   3. pokemon: <PokemonDataView pokemon={pokemon} />
-  else if (pokemon) {
+  //   4. pokemon: <PokemonDataView pokemon={pokemon} />
+  else if (status === 'resolved') {
     output = <PokemonDataView pokemon={pokemon} />;
+  } else {
+    throw new Error('This should be impossible');
   }
   return output;
 }
